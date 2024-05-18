@@ -2,7 +2,7 @@ import { Image, Text, TouchableOpacity, View } from "react-native"
 import { styles } from "./despesa.style.js"
 
 const Despesas = (props) => {
-    return <TouchableOpacity onPress={() => props.onClick(0)} >
+    return <TouchableOpacity onPress={() => props.onClick(props.id)} >
     
         <View style={styles.despesa}>
 
@@ -17,7 +17,7 @@ const Despesas = (props) => {
             </View>
 
             <View style={styles.containerValor}>
-                <Text style={styles.despesaValor}>{props.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</Text>
+                <Text style={styles.despesaValor}>{Number(props.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</Text>
             </View>
 
         </View>

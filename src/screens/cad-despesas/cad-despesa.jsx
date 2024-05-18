@@ -1,36 +1,86 @@
-import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image } from "react-native"
+import { useEffect, useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Image, Alert } from "react-native"
 import { styles } from "./cad-despesa.style";
 import icons from "../../constants/icons.js"
 import { Picker } from "@react-native-picker/picker"
+import api from "../../services/api.js";
 
 
 const CadDespesa = (props) => {
 
-    const [id, setId] = useState(0)
     const [valor, setValor] = useState(0)
     const [descricao, setDescricao] = useState("")
     const [categoria, setCategoria] = useState("")
 
-    const handleSalvar = () => {
+    const handleSalvar = async () => {
         // salvar na API...
+        try {
+          if (props.route.params.id > 0) {
+            await api.put("despesas/" + props.route.params.id, {
+              descricao,
+              categoria,
+              valor
+            })
+          } else {
+            await api.post("despesas", {
+              descricao,
+              categoria,
+              valor
+          })
+        }
         props.navigation.navigate("home")
+        } catch (error) {
+          console.log(error)
+          Alert.alert("Erro ao salvar dados")
+        }
     }
 
-    const handleExcluir = () => {
-        // salvar na API...
-        props.navigation.navigate("home")
+    const handleExcluir = async () => {
+        // excluir na API...
+        try {
+            await api.delete("despesas/" + props.route.params.id)
+              props.navigation.navigate("home")
+        } catch (error) {
+          console.log(error)
+          Alert.alert("Erro ao excluir dados")
+        }
     }
+
+    const DadosDespesas = async (id) => {
+      try {
+            
+        // Buscar dados na APi
+        const response = await api.get("/despesas/" + id)
+        setDescricao(response.data.descricao)
+        setCategoria(response.data.categoria)
+        setValor(response.data.valor)
+
+    } catch (error) {
+        console.log(error)
+        Alert.alert("Erro ao acessar dados da despesa")
+    }
+    }
+
+    useEffect(() => {
+      // Tratar o texto do Header
+      props.navigation.setOptions({title: props.route.params.id > 0 ? "Editar despesas" : "Nova despesa"})
+
+      // Buscar dados da despesa na API
+      if (props.route.params.id > 0) {
+          DadosDespesas(props.route.params.id)
+      }
+    }, [])
 
     return <View style={styles.container} >
               <View style={styles.containerField}>
                 <Text style={styles.inputLabel}>Valor</Text>
-                <TextInput placeholder="0,00" style={styles.inputValor} defaultValue="0" keyboardType="decimal-pad"></TextInput>
+                <TextInput placeholder="0,00" style={styles.inputValor} defaultValue={valor.toString()} keyboardType="decimal-pad"
+                onChangeText={(texto) => setValor(texto)}></TextInput>
               </View>
 
               <View style={styles.containerField} > 
                 <Text style={styles.inputLabel}>Descrição</Text>
-                <TextInput placeholder="Ex: Aluguel" style={styles.inputText} defaultValue=""></TextInput>
+                <TextInput placeholder="Ex: Aluguel" style={styles.inputText} defaultValue={descricao} onChangeText={(texto) => setDescricao(texto)}></TextInput>
               </View>
 
               <View style={styles.containerField} > 
